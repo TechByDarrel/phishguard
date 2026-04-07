@@ -65,7 +65,7 @@ export default function DashboardPage() {
         const response = await axios.get<DashboardResponse>(
           `${API_BASE_URL}/api/url-checks`
         );
-        setChecks(response.data.data);
+        setChecks(response.data.data || []);
       } catch (err: any) {
         console.error("Dashboard fetch error:", err);
         setError(
@@ -101,16 +101,18 @@ export default function DashboardPage() {
   }, [checks]);
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-12">
-      <div className="max-w-6xl mx-auto">
+    <main className="min-h-screen bg-black px-5 py-10 text-white sm:px-6 md:px-8">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500 mb-3">
-            PhishGuard
+          <p className="mb-3 text-xs tracking-[0.35em] text-zinc-500 sm:text-sm">
+            PHISHGUARD
           </p>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Dashboard</h1>
+          <h1 data-text="Dashboard" className="glitch mb-4 text-4xl font-bold sm:text-5xl">
+            Dashboard
+          </h1>
 
-          <p className="text-zinc-400 text-base md:text-lg min-h-[32px]">
+          <p className="min-h-[32px] text-sm text-zinc-400 sm:text-base md:text-lg">
             {animatedHeading}
             <span className="animate-pulse">|</span>
           </p>
@@ -123,63 +125,70 @@ export default function DashboardPage() {
         )}
 
         {error && (
-          <div className="rounded-2xl border border-red-800 bg-red-950/30 p-6 mb-8">
-            <p className="text-red-300 font-semibold mb-1">Error</p>
+          <div className="mb-8 rounded-2xl border border-red-800 bg-red-950/30 p-6">
+            <p className="mb-1 font-semibold text-red-300">Error</p>
             <p className="text-red-200">{error}</p>
           </div>
         )}
 
         {!loading && !error && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
-                <p className="text-zinc-500 text-sm mb-2">Total Checks</p>
+                <p className="mb-2 text-sm text-zinc-500">Total Checks</p>
                 <h2 className="text-3xl font-bold">{stats.totalChecks}</h2>
               </div>
 
               <div className="rounded-2xl border border-red-800 bg-red-950/20 p-5">
-                <p className="text-red-300 text-sm mb-2">High / Very High</p>
+                <p className="mb-2 text-sm text-red-300">High / Very High</p>
                 <h2 className="text-3xl font-bold text-red-400">
                   {stats.highRiskCount}
                 </h2>
               </div>
 
               <div className="rounded-2xl border border-yellow-800 bg-yellow-950/20 p-5">
-                <p className="text-yellow-300 text-sm mb-2">Medium Risk</p>
+                <p className="mb-2 text-sm text-yellow-300">Medium Risk</p>
                 <h2 className="text-3xl font-bold text-yellow-400">
                   {stats.mediumRiskCount}
                 </h2>
               </div>
 
               <div className="rounded-2xl border border-green-800 bg-green-950/20 p-5">
-                <p className="text-green-300 text-sm mb-2">Low Risk</p>
+                <p className="mb-2 text-sm text-green-300">Low Risk</p>
                 <h2 className="text-3xl font-bold text-green-400">
                   {stats.lowRiskCount}
                 </h2>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden">
-              <div className="p-5 border-b border-zinc-800">
-                <h2 className="text-2xl font-semibold">Recent URL Checks</h2>
+            {checks.length === 0 ? (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-8 text-center">
+                <h2 className="mb-3 text-2xl font-semibold text-white">
+                  No scans yet
+                </h2>
+                <p className="mx-auto max-w-xl text-sm leading-7 text-zinc-400 sm:text-base">
+                  The dashboard is empty because no suspicious URL has been checked
+                  and saved yet. Once you scan a URL from the checker page, it will
+                  appear here automatically.
+                </p>
               </div>
-
-              {checks.length === 0 ? (
-                <div className="p-6">
-                  <p className="text-zinc-400">No URL checks found yet.</p>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
+                <div className="border-b border-zinc-800 p-5">
+                  <h2 className="text-2xl font-semibold">Recent URL Checks</h2>
                 </div>
-              ) : (
+
                 <div className="divide-y divide-zinc-800">
                   {checks.map((check) => (
                     <div key={check.id} className="p-5">
-                      <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
-                        <div className="flex-1 min-w-[240px]">
-                          <p className="text-sm text-zinc-500 mb-1">URL</p>
-                          <p className="text-white break-all">{check.url}</p>
+                      <div className="mb-3 flex flex-wrap items-start justify-between gap-4">
+                        <div className="min-w-[240px] flex-1">
+                          <p className="mb-1 text-sm text-zinc-500">URL</p>
+                          <p className="break-all text-white">{check.url}</p>
                         </div>
 
                         <span
-                          className={`text-xs font-bold px-3 py-1 rounded-full border ${getLevelColor(
+                          className={`rounded-full border px-3 py-1 text-xs font-bold ${getLevelColor(
                             check.level
                           )}`}
                         >
@@ -187,22 +196,22 @@ export default function DashboardPage() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
-                          <p className="text-sm text-zinc-500 mb-1">Risk Score</p>
-                          <p className="text-white font-semibold">
+                          <p className="mb-1 text-sm text-zinc-500">Risk Score</p>
+                          <p className="font-semibold text-white">
                             {check.risk_score}
                           </p>
                         </div>
 
                         <div className="md:col-span-2">
-                          <p className="text-sm text-zinc-500 mb-1">Findings</p>
+                          <p className="mb-1 text-sm text-zinc-500">Findings</p>
                           <p className="text-zinc-300">{check.findings}</p>
                         </div>
                       </div>
 
                       <div className="mt-4">
-                        <p className="text-sm text-zinc-500 mb-1">Checked At</p>
+                        <p className="mb-1 text-sm text-zinc-500">Checked At</p>
                         <p className="text-zinc-400">
                           {new Date(check.created_at).toLocaleString()}
                         </p>
@@ -210,8 +219,8 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>

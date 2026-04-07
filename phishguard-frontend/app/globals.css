@@ -24,3 +24,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.glitch {
+  position: relative;
+  display: inline-block;
+  text-shadow: 0.03em 0 0 rgba(255, 0, 60, 0.75),
+    -0.03em -0.02em 0 rgba(0, 180, 255, 0.75),
+    0.02em 0.03em 0 rgba(255, 255, 255, 0.35);
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.glitch::before {
+  transform: translate(-1px, -1px);
+  color: rgba(255, 0, 60, 0.5);
+}
+
+.glitch::after {
+  transform: translate(1px, 1px);
+  color: rgba(0, 180, 255, 0.5);
+}
