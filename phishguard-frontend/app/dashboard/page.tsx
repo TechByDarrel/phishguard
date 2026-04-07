@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 
 type UrlCheck = {
   id: number;
@@ -11,14 +10,6 @@ type UrlCheck = {
   findings: string;
   created_at: string;
 };
-
-type DashboardResponse = {
-  success: boolean;
-  count: number;
-  data: UrlCheck[];
-};
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 function useTypewriter(text: string, speed = 45) {
   const [displayedText, setDisplayedText] = useState("");
@@ -45,7 +36,6 @@ function useTypewriter(text: string, speed = 45) {
 export default function DashboardPage() {
   const [checks, setChecks] = useState<UrlCheck[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   const animatedHeading = useTypewriter("Monitor phishing activity in real time.");
 
@@ -60,26 +50,11 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    const fetchChecks = async () => {
-      try {
-        const response = await axios.get<DashboardResponse>(
-          `${API_BASE_URL}/api/url-checks`
-        );
-        setChecks(response.data.data || []);
-      } catch (err: any) {
-        console.error("Dashboard fetch error:", err);
-        setError(
-          err.response?.data?.message ||
-            err.response?.data?.error ||
-            err.message ||
-            "Failed to load dashboard data"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchChecks();
+    const localData = JSON.parse(
+      localStorage.getItem("phishguard_scans") || "[]"
+    );
+    setChecks(localData);
+    setLoading(false);
   }, []);
 
   const stats = useMemo(() => {
@@ -108,7 +83,10 @@ export default function DashboardPage() {
             PHISHGUARD
           </p>
 
-          <h1 data-text="Dashboard" className="glitch mb-4 text-4xl font-bold sm:text-5xl">
+          <h1
+            data-text="Dashboard"
+            className="glitch mb-4 text-4xl font-bold sm:text-5xl"
+          >
             Dashboard
           </h1>
 
@@ -124,14 +102,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {error && (
-          <div className="mb-8 rounded-2xl border border-red-800 bg-red-950/30 p-6">
-            <p className="mb-1 font-semibold text-red-300">Error</p>
-            <p className="text-red-200">{error}</p>
-          </div>
-        )}
-
-        {!loading && !error && (
+        {!loading && (
           <>
             <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
@@ -167,9 +138,8 @@ export default function DashboardPage() {
                   No scans yet
                 </h2>
                 <p className="mx-auto max-w-xl text-sm leading-7 text-zinc-400 sm:text-base">
-                  The dashboard is empty because no suspicious URL has been checked
-                  and saved yet. Once you scan a URL from the checker page, it will
-                  appear here automatically.
+                  This dashboard only shows scans saved on this device. Once you
+                  check a suspicious URL from the checker page, it will appear here.
                 </p>
               </div>
             ) : (
@@ -179,8 +149,8 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="divide-y divide-zinc-800">
-                  {checks.map((check) => (
-                    <div key={check.id} className="p-5">
+                  {checks.map((check, index) => (
+                    <div key={`${check.id}-${index}`} className="p-5">
                       <div className="mb-3 flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-[240px] flex-1">
                           <p className="mb-1 text-sm text-zinc-500">URL</p>

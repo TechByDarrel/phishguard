@@ -3,17 +3,19 @@
 import { useState } from "react";
 import axios from "axios";
 
+type ScanData = {
+  id: number;
+  url: string;
+  risk_score: number;
+  level: string;
+  findings: string;
+  created_at: string;
+};
+
 type CheckResult = {
   success: boolean;
   message?: string;
-  data?: {
-    id: number;
-    url: string;
-    risk_score: number;
-    level: string;
-    findings: string;
-    created_at: string;
-  };
+  data?: ScanData;
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -34,6 +36,16 @@ export default function CheckUrlPage() {
     return "text-green-400 border-green-400 bg-green-950/30";
   };
 
+  const saveScanLocally = (scan: ScanData) => {
+    const existingScans = JSON.parse(
+      localStorage.getItem("phishguard_scans") || "[]"
+    );
+
+    const updatedScans = [scan, ...existingScans].slice(0, 50);
+
+    localStorage.setItem("phishguard_scans", JSON.stringify(updatedScans));
+  };
+
   const handleCheckUrl = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -46,6 +58,10 @@ export default function CheckUrlPage() {
       });
 
       setResult(response.data);
+
+      if (response.data?.data) {
+        saveScanLocally(response.data.data);
+      }
     } catch (err: any) {
       console.error("Frontend error:", err);
       setError(
@@ -60,23 +76,25 @@ export default function CheckUrlPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-12">
-      <div className="max-w-2xl mx-auto">
+    <main className="min-h-screen bg-black text-white px-5 py-10 sm:px-6 md:px-8">
+      <div className="mx-auto max-w-2xl">
         <div className="mb-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500 mb-3">
-            PhishGuard
+          <p className="mb-3 text-xs tracking-[0.35em] text-zinc-500 sm:text-sm">
+            PHISHGUARD
           </p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+
+          <h1 className="mb-4 text-4xl font-bold sm:text-5xl">
             Check a Suspicious URL
           </h1>
-          <p className="text-zinc-400 text-base md:text-lg">
+
+          <p className="text-sm text-zinc-400 sm:text-base md:text-lg">
             Paste a link below to analyze phishing risk and detect possible red flags.
           </p>
         </div>
 
         <form
           onSubmit={handleCheckUrl}
-          className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-lg space-y-4"
+          className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-5 shadow-lg sm:p-6"
         >
           <label
             htmlFor="url"
@@ -91,32 +109,32 @@ export default function CheckUrlPage() {
             placeholder="Enter a suspicious URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="w-full rounded-xl bg-zinc-900 border border-zinc-700 px-4 py-3 text-white placeholder:text-zinc-500 outline-none focus:border-zinc-500"
+            className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none placeholder:text-zinc-500 focus:border-zinc-500"
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full sm:w-auto bg-white text-black font-semibold px-6 py-3 rounded-xl hover:bg-zinc-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full rounded-xl bg-white px-6 py-3 font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {loading ? "Analyzing..." : "Check URL"}
           </button>
         </form>
 
         {error && (
-          <div className="mt-6 rounded-xl bg-red-950/40 border border-red-800 p-4">
-            <p className="text-red-300 font-medium">Error</p>
-            <p className="text-red-200 text-sm mt-1">{error}</p>
+          <div className="mt-6 rounded-xl border border-red-800 bg-red-950/40 p-4">
+            <p className="font-medium text-red-300">Error</p>
+            <p className="mt-1 text-sm text-red-200">{error}</p>
           </div>
         )}
 
         {result?.data && (
-          <div className="mt-8 rounded-2xl bg-zinc-950 border border-zinc-800 p-6 shadow-lg">
-            <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-950 p-5 shadow-lg sm:p-6">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-2xl font-semibold">Analysis Result</h2>
 
               <span
-                className={`text-xs font-bold px-3 py-1 rounded-full border ${getLevelColor(
+                className={`rounded-full border px-3 py-1 text-xs font-bold ${getLevelColor(
                   result.data.level
                 )}`}
               >
@@ -126,20 +144,20 @@ export default function CheckUrlPage() {
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-zinc-500 mb-1">URL</p>
+                <p className="mb-1 text-sm text-zinc-500">URL</p>
                 <p className="break-all text-white">{result.data.url}</p>
               </div>
 
               <div>
-                <p className="text-sm text-zinc-500 mb-1">Risk Score</p>
-                <p className="text-white font-semibold">
+                <p className="mb-1 text-sm text-zinc-500">Risk Score</p>
+                <p className="font-semibold text-white">
                   {result.data.risk_score}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-zinc-500 mb-1">Findings</p>
-                <ul className="list-disc pl-6 space-y-1 text-zinc-300">
+                <p className="mb-1 text-sm text-zinc-500">Findings</p>
+                <ul className="list-disc space-y-1 pl-6 text-zinc-300">
                   {result.data.findings.split(", ").map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
@@ -147,7 +165,7 @@ export default function CheckUrlPage() {
               </div>
 
               <div>
-                <p className="text-sm text-zinc-500 mb-1">Checked At</p>
+                <p className="mb-1 text-sm text-zinc-500">Checked At</p>
                 <p className="text-zinc-400">
                   {new Date(result.data.created_at).toLocaleString()}
                 </p>
