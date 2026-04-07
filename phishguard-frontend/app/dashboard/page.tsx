@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 type UrlCheck = {
@@ -20,10 +20,34 @@ type DashboardResponse = {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+function useTypewriter(text: string, speed = 45) {
+  const [displayedText, setDisplayedText] = useState("");
+
+  useEffect(() => {
+    let index = 0;
+    setDisplayedText("");
+
+    const interval = setInterval(() => {
+      index += 1;
+      setDisplayedText(text.slice(0, index));
+
+      if (index >= text.length) {
+        clearInterval(interval);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed]);
+
+  return displayedText;
+}
+
 export default function DashboardPage() {
   const [checks, setChecks] = useState<UrlCheck[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const animatedHeading = useTypewriter("Monitor phishing activity in real time.");
 
   const getLevelColor = (level: string) => {
     if (level === "Very High" || level === "High") {
@@ -58,12 +82,23 @@ export default function DashboardPage() {
     fetchChecks();
   }, []);
 
-  const totalChecks = checks.length;
-  const highRiskCount = checks.filter(
-    (check) => check.level === "High" || check.level === "Very High"
-  ).length;
-  const mediumRiskCount = checks.filter((check) => check.level === "Medium").length;
-  const lowRiskCount = checks.filter((check) => check.level === "Low").length;
+  const stats = useMemo(() => {
+    const totalChecks = checks.length;
+    const highRiskCount = checks.filter(
+      (check) => check.level === "High" || check.level === "Very High"
+    ).length;
+    const mediumRiskCount = checks.filter(
+      (check) => check.level === "Medium"
+    ).length;
+    const lowRiskCount = checks.filter((check) => check.level === "Low").length;
+
+    return {
+      totalChecks,
+      highRiskCount,
+      mediumRiskCount,
+      lowRiskCount,
+    };
+  }, [checks]);
 
   return (
     <main className="min-h-screen bg-black text-white px-6 py-12">
@@ -72,9 +107,12 @@ export default function DashboardPage() {
           <p className="text-sm uppercase tracking-[0.3em] text-zinc-500 mb-3">
             PhishGuard
           </p>
+
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Dashboard</h1>
-          <p className="text-zinc-400 text-base md:text-lg">
-            View saved URL scans and monitor phishing risk activity.
+
+          <p className="text-zinc-400 text-base md:text-lg min-h-[32px]">
+            {animatedHeading}
+            <span className="animate-pulse">|</span>
           </p>
         </div>
 
@@ -96,22 +134,28 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
                 <p className="text-zinc-500 text-sm mb-2">Total Checks</p>
-                <h2 className="text-3xl font-bold">{totalChecks}</h2>
+                <h2 className="text-3xl font-bold">{stats.totalChecks}</h2>
               </div>
 
               <div className="rounded-2xl border border-red-800 bg-red-950/20 p-5">
                 <p className="text-red-300 text-sm mb-2">High / Very High</p>
-                <h2 className="text-3xl font-bold text-red-400">{highRiskCount}</h2>
+                <h2 className="text-3xl font-bold text-red-400">
+                  {stats.highRiskCount}
+                </h2>
               </div>
 
               <div className="rounded-2xl border border-yellow-800 bg-yellow-950/20 p-5">
                 <p className="text-yellow-300 text-sm mb-2">Medium Risk</p>
-                <h2 className="text-3xl font-bold text-yellow-400">{mediumRiskCount}</h2>
+                <h2 className="text-3xl font-bold text-yellow-400">
+                  {stats.mediumRiskCount}
+                </h2>
               </div>
 
               <div className="rounded-2xl border border-green-800 bg-green-950/20 p-5">
                 <p className="text-green-300 text-sm mb-2">Low Risk</p>
-                <h2 className="text-3xl font-bold text-green-400">{lowRiskCount}</h2>
+                <h2 className="text-3xl font-bold text-green-400">
+                  {stats.lowRiskCount}
+                </h2>
               </div>
             </div>
 
@@ -146,7 +190,9 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <p className="text-sm text-zinc-500 mb-1">Risk Score</p>
-                          <p className="text-white font-semibold">{check.risk_score}</p>
+                          <p className="text-white font-semibold">
+                            {check.risk_score}
+                          </p>
                         </div>
 
                         <div className="md:col-span-2">
