@@ -18,6 +18,8 @@ type DashboardResponse = {
   data: UrlCheck[];
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function DashboardPage() {
   const [checks, setChecks] = useState<UrlCheck[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,14 +39,14 @@ export default function DashboardPage() {
     const fetchChecks = async () => {
       try {
         const response = await axios.get<DashboardResponse>(
-          "http://127.0.0.1:5001/api/url-checks"
+          `${API_BASE_URL}/api/url-checks`
         );
-
         setChecks(response.data.data);
       } catch (err: any) {
         console.error("Dashboard fetch error:", err);
         setError(
           err.response?.data?.message ||
+            err.response?.data?.error ||
             err.message ||
             "Failed to load dashboard data"
         );
@@ -60,9 +62,7 @@ export default function DashboardPage() {
   const highRiskCount = checks.filter(
     (check) => check.level === "High" || check.level === "Very High"
   ).length;
-  const mediumRiskCount = checks.filter(
-    (check) => check.level === "Medium"
-  ).length;
+  const mediumRiskCount = checks.filter((check) => check.level === "Medium").length;
   const lowRiskCount = checks.filter((check) => check.level === "Low").length;
 
   return (
@@ -101,23 +101,17 @@ export default function DashboardPage() {
 
               <div className="rounded-2xl border border-red-800 bg-red-950/20 p-5">
                 <p className="text-red-300 text-sm mb-2">High / Very High</p>
-                <h2 className="text-3xl font-bold text-red-400">
-                  {highRiskCount}
-                </h2>
+                <h2 className="text-3xl font-bold text-red-400">{highRiskCount}</h2>
               </div>
 
               <div className="rounded-2xl border border-yellow-800 bg-yellow-950/20 p-5">
                 <p className="text-yellow-300 text-sm mb-2">Medium Risk</p>
-                <h2 className="text-3xl font-bold text-yellow-400">
-                  {mediumRiskCount}
-                </h2>
+                <h2 className="text-3xl font-bold text-yellow-400">{mediumRiskCount}</h2>
               </div>
 
               <div className="rounded-2xl border border-green-800 bg-green-950/20 p-5">
                 <p className="text-green-300 text-sm mb-2">Low Risk</p>
-                <h2 className="text-3xl font-bold text-green-400">
-                  {lowRiskCount}
-                </h2>
+                <h2 className="text-3xl font-bold text-green-400">{lowRiskCount}</h2>
               </div>
             </div>
 
@@ -152,9 +146,7 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <p className="text-sm text-zinc-500 mb-1">Risk Score</p>
-                          <p className="text-white font-semibold">
-                            {check.risk_score}
-                          </p>
+                          <p className="text-white font-semibold">{check.risk_score}</p>
                         </div>
 
                         <div className="md:col-span-2">

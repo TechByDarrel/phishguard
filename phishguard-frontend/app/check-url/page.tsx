@@ -16,6 +16,8 @@ type CheckResult = {
   };
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function CheckUrlPage() {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<CheckResult | null>(null);
@@ -39,10 +41,9 @@ export default function CheckUrlPage() {
     setResult(null);
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:5001/api/check-url",
-        { url }
-      );
+      const response = await axios.post(`${API_BASE_URL}/api/check-url`, {
+        url,
+      });
 
       setResult(response.data);
     } catch (err: any) {
@@ -61,7 +62,6 @@ export default function CheckUrlPage() {
   return (
     <main className="min-h-screen bg-black text-white px-6 py-12">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="mb-10">
           <p className="text-sm uppercase tracking-[0.3em] text-zinc-500 mb-3">
             PhishGuard
@@ -74,7 +74,6 @@ export default function CheckUrlPage() {
           </p>
         </div>
 
-        {/* Form */}
         <form
           onSubmit={handleCheckUrl}
           className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-lg space-y-4"
@@ -104,7 +103,6 @@ export default function CheckUrlPage() {
           </button>
         </form>
 
-        {/* Error */}
         {error && (
           <div className="mt-6 rounded-xl bg-red-950/40 border border-red-800 p-4">
             <p className="text-red-300 font-medium">Error</p>
@@ -112,7 +110,6 @@ export default function CheckUrlPage() {
           </div>
         )}
 
-        {/* Result */}
         {result?.data && (
           <div className="mt-8 rounded-2xl bg-zinc-950 border border-zinc-800 p-6 shadow-lg">
             <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
@@ -128,13 +125,11 @@ export default function CheckUrlPage() {
             </div>
 
             <div className="space-y-4">
-              {/* URL */}
               <div>
                 <p className="text-sm text-zinc-500 mb-1">URL</p>
                 <p className="break-all text-white">{result.data.url}</p>
               </div>
 
-              {/* Risk Score */}
               <div>
                 <p className="text-sm text-zinc-500 mb-1">Risk Score</p>
                 <p className="text-white font-semibold">
@@ -142,19 +137,15 @@ export default function CheckUrlPage() {
                 </p>
               </div>
 
-              {/* Findings (bullet points) */}
               <div>
                 <p className="text-sm text-zinc-500 mb-1">Findings</p>
                 <ul className="list-disc pl-6 space-y-1 text-zinc-300">
-                  {result.data.findings
-                    .split(", ")
-                    .map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
+                  {result.data.findings.split(", ").map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
                 </ul>
               </div>
 
-              {/* Time */}
               <div>
                 <p className="text-sm text-zinc-500 mb-1">Checked At</p>
                 <p className="text-zinc-400">
